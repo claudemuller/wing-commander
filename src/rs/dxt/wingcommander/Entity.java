@@ -1,18 +1,23 @@
 package rs.dxt.wingcommander;
 
+import java.awt.*;
+
 public class Entity {
 
-    protected int x, y;
+    protected double x, y;
     protected int r;
     
-    protected int dx, dy;
+    protected double dx, dy;
+    protected double speed;
+
+    protected Color colour1;
 
     /**
      * Get x
      * 
      * @return x
      */
-    public int getX() {
+    public double getX() {
         return x;
     }
     
@@ -21,7 +26,7 @@ public class Entity {
      * 
      * @return y
      */
-    public int getY() {
+    public double getY() {
         return y;
     }
 

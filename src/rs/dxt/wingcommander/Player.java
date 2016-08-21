@@ -5,8 +5,6 @@ import java.awt.Graphics2D;
 
 public class Player extends Entity {
 
-    private int speed;
-    
     private boolean left;
     private boolean right;
     private boolean up;
@@ -22,7 +20,7 @@ public class Player extends Entity {
     private int score;
     
     private int lives;
-    private Color color1, color2;
+    private Color colour2;
     
     private int powerLevel;
     private int power;
@@ -43,8 +41,8 @@ public class Player extends Entity {
         speed = 5;
         
         lives = 3;
-        color1 = Color.WHITE;
-        color2 = Color.RED;
+        colour1 = Color.WHITE;
+        colour2 = Color.RED;
         
         firing = false;
         firingTimer = System.nanoTime();
@@ -259,7 +257,8 @@ public class Player extends Entity {
      * Draw all player related stuff
      */
     public void draw(Graphics2D g) {
-        g.setColor(color1);
-        g.fillPolygon(new int[]{x, x + r, x - r}, new int[]{y - r * 2, y + r, y + r}, 3);
+        g.setColor(colour1);
+        g.fillPolygon(new int[]{(int)x, (int)x + r, (int)x - r},
+                new int[]{(int)y - r * 2, (int)y + r, (int)y + r}, 3);
     }
 }
