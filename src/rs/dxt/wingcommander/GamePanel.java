@@ -4,9 +4,13 @@ import java.util.ArrayList;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.net.URL;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
 import javax.swing.JPanel;
 
 public class GamePanel extends JPanel implements Runnable, KeyListener{
@@ -28,6 +32,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
     public static ArrayList<Bullet> bullets;
     public static ArrayList<Enemy> enemies;
     public static ArrayList<Explosion> explosions;
+    public static ArrayList<PowerUp> powerups;
+    public static ArrayList<Text> texts;
     
     private long waveStartTimer;
     private long waveStartTimerDiff;
@@ -39,7 +45,9 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
     private long slowDownTimerDiff;
     private int slowDownTimerLength = 6000;
     
-    private Font font, fontLarge;
+    public Font font, fontLarge, fontSmall;
+
+    boolean played;
     
     /**
      * Class constructor
@@ -78,13 +86,16 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         
         try {
-            InputStream is = new FileInputStream("fonts/slkscr.ttf");
-            Font ttfFont = Font.createFont(Font.TRUETYPE_FONT, is);
+            URL resource = getClass().getResource("fonts/slkscr.ttf");
+            Font ttfFont = Font.createFont(Font.TRUETYPE_FONT, resource.openStream());
             font = ttfFont.deriveFont(18f);
             fontLarge = ttfFont.deriveFont(40f);
+            fontSmall = ttfFont.deriveFont(12f);
         } catch(Exception e) {
             System.out.println(e.getMessage());
             font = new Font("Century Gothic", Font.PLAIN, 18);
+            fontLarge = new Font("Century Gothic", Font.PLAIN, 40);
+            fontSmall = new Font("Century Gothic", Font.PLAIN, 12);
         }
 
         stars = new ArrayList<Star>();
@@ -92,6 +103,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
         bullets = new ArrayList<Bullet>();
         enemies = new ArrayList<Enemy>();
         explosions = new ArrayList<Explosion>();
+        powerups = new ArrayList<PowerUp>();
+        texts = new ArrayList<Text>();
         
         // Create stars
         for (int i = 0; i < 100; i++) {
@@ -147,135 +160,224 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
      * Where all the game logic get's updated
      */
     public void gameUpdate() {
-        // New Wave
-        if (waveStartTimer == 0 && enemies.size() == 0) {
-            waveNumber++;
-            waveStart = true;
-            waveStartTimer = System.nanoTime();
+        if (menu) {
+            played = true;
+            if (!played) {
+                URL resource = getClass().getResource("sfx/powerup.wav");
+                try {
+                    AudioInputStream stream = AudioSystem.getAudioInputStream(resource);
+                    //AudioFormat format = stream.getFormat();
+                    //DataLine.Info info = new DataLine.Info(Clip.class, format);
+                    //Clip clip = (Clip)AudioSystem.getLine(info);
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(stream);
+                    clip.start();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+                played = true;
+            }
         } else {
-            waveStartTimerDiff = (System.nanoTime() - waveStartTimer) / 1000000;
-            if (waveStartTimerDiff > waveDelay) {
+            // New Wave
+            if (waveStartTimer == 0 && enemies.size() == 0) {
+                waveNumber++;
                 waveStart = true;
-                waveStartTimer = 0;
-                waveStartTimerDiff = 0;
+                waveStartTimer = System.nanoTime();
+            } else {
+                waveStartTimerDiff = (System.nanoTime() - waveStartTimer) / 1000000;
+                if (waveStartTimerDiff > waveDelay) {
+                    waveStart = true;
+                    waveStartTimer = 0;
+                    waveStartTimerDiff = 0;
+                }
             }
-        }
-        
-        // Create enemies
-        if (waveStart && enemies.size() == 0) {
-            createNewEnemies();
-        }
-
-        // Update stars
-        for (int i = 0; i < stars.size(); i++) {
-            stars.get(i).update();
-        }
-
-        // Update player
-        player.update();
-        
-        // Update bullets
-        for (int i = 0; i < bullets.size(); i++) {
-            boolean remove = bullets.get(i).update();
-            if (remove) {
-                bullets.remove(i);
-                i--;
-            }
-        }
-        
-        // Update enemies
-        for (int i = 0; i < enemies.size(); i++) {
-            enemies.get(i).update();
-        }
-        
-        // Update explosions
-        for (int i = 0; i < explosions.size(); i++) {
-            boolean remove = explosions.get(i).update();
-            if (remove) {
-                explosions.remove(i);
-                i--;
-            }
-        }
-        
-        // Bullet-Enemy collision
-        for (int i = 0; i < bullets.size(); i++) {
-            Bullet b = bullets.get(i);
-            double bx = b.getX();
-            double by = b.getY();
-            double br = b.getR();
             
-            for (int j = 0; j < enemies.size(); j++) {
-                Enemy e = enemies.get(j);
-                double ex = e.getX();
-                double ey = e.getY();
-                double er = e.getR();
+            // Create enemies
+            if (waveStart && enemies.size() == 0) {
+                createNewEnemies();
+            }
+
+            // Update stars
+            for (int i = 0; i < stars.size(); i++) {
+                stars.get(i).update();
+            }
+
+            // Update player
+            player.update();
+            
+            // Update bullets
+            for (int i = 0; i < bullets.size(); i++) {
+                boolean remove = bullets.get(i).update();
+                if (remove) {
+                    bullets.remove(i);
+                    i--;
+                }
+            }
+            
+            // Update enemies
+            for (int i = 0; i < enemies.size(); i++) {
+                enemies.get(i).update();
+            }
+            
+            // Update powerups
+            for (int i = 0; i < powerups.size(); i++) {
+                boolean remove = powerups.get(i).update();
+                if (remove) {
+                    powerups.remove(i);
+                    i--;
+                }
+            }
+            
+            // Update explosions
+            for (int i = 0; i < explosions.size(); i++) {
+                boolean remove = explosions.get(i).update();
+                if (remove) {
+                    explosions.remove(i);
+                    i--;
+                }
+            }
+            
+            // Update texts
+            for (int i = 0; i < texts.size(); i++) {
+                boolean remove = texts.get(i).update();
+                if (remove) {
+                    texts.remove(i);
+                    i--;
+                }
+            }
+            
+            // Bullet-Enemy collision
+            for (int i = 0; i < bullets.size(); i++) {
+                Bullet b = bullets.get(i);
+                double bx = b.getX();
+                double by = b.getY();
+                double br = b.getR();
                 
-                double dx = bx - ex;
-                double dy = by - ey;
-                double dist = Math.sqrt(dx * dx + dy * dy);
-                
-                // Collision if dist less than both radii added together
-                if (dist < br + er) {
-                    e.hit();
-                    bullets.remove(b);
-                    if (i > 0) {
-                        i--;
+                for (int j = 0; j < enemies.size(); j++) {
+                    Enemy e = enemies.get(j);
+                    double ex = e.getX();
+                    double ey = e.getY();
+                    double er = e.getR();
+                    
+                    double dx = bx - ex;
+                    double dy = by - ey;
+                    double dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Collision if dist less than both radii added together
+                    if (dist < br + er) {
+                        e.hit();
+                        bullets.remove(b);
+                        if (i > 0) {
+                            i--;
+                        }
                     }
                 }
             }
-        }
-        
-        // Check for dead enemies
-        for (int i = 0; i < enemies.size(); i++) {
-           if (enemies.get(i).isDead()) {
-               Enemy e = enemies.get(i);
-               
-               // Chance for powerup
-               double rand = Math.random();
-               if (rand < 0.01) {
-
-               } else if (rand < 0.01) {
-
-               } else if (rand < 0.01) {
-
-               } else if (rand < 0.01) {
-
+            
+            // Check for dead enemies
+            for (int i = 0; i < enemies.size(); i++) {
+               if (enemies.get(i).isDead()) {
+                   Enemy e = enemies.get(i);
+                   
+                   // Chance for powerup
+                   double rand = Math.random();
+                   if (rand < 0.01) {
+                       powerups.add(new PowerUp(1, e.getX(), e.getY()));
+                   } else if (rand < 0.01) {
+                       powerups.add(new PowerUp(3, e.getX(), e.getY()));
+                   } else if (rand < 0.01) {
+                       powerups.add(new PowerUp(2, e.getX(), e.getY()));
+                   } else if (rand < 0.01) {
+                       powerups.add(new PowerUp(4, e.getX(), e.getY()));
+                   }
+                   
+                   player.addScore(e.getType() + e.getRank());
+                   
+                   enemies.remove(i);
+                   i--;
+                   
+                   e.explode();
+                   explosions.add(new Explosion(e.getX(), e.getY(), e.getR(),
+                           e.getR() + 30));
                }
-               
-               player.addScore(e.getType() + e.getRank());
-               
-               enemies.remove(i);
-               i--;
-               
-               e.explode();
-               explosions.add(new Explosion(e.getX(), e.getY(), e.getR(),
-                       e.getR() + 30));
-           }
-        }
-        
-        // Check if the player is dead
-        if (player.isDead()) {
-            running = false;
-        }
-        
-        // Player-Enemy collision
-        if (!player.isRecovering()) {
+            }
+            
+            // Check if the player is dead
+            if (player.isDead()) {
+                running = false;
+            }
+            
+            // Player-Enemy collision
             double px = player.getX();
             double py = player.getY();
             double pr = player.getR();
-            
-            for (int i = 0; i < enemies.size(); i++) {
-                Enemy e = enemies.get(i);
-                double ex = e.getX();
-                double ey = e.getY();
-                double er = e.getR();
                 
-                double dx = px - ex;
-                double dy = py - ey;
+            if (!player.isRecovering()) {
+                for (int i = 0; i < enemies.size(); i++) {
+                    Enemy e = enemies.get(i);
+                    double ex = e.getX();
+                    double ey = e.getY();
+                    double er = e.getR();
+                    
+                    double dx = px - ex;
+                    double dy = py - ey;
+                    double dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < pr - er) {
+                        player.loseLife();
+                    }
+                }
+            }
+            
+            // Player-PowerUp collision
+            for (int i = 0; i < powerups.size(); i++) {
+                PowerUp p = powerups.get(i);
+                double x = p.getX();
+                double y = p.getY();
+                double r = p.getR();
+                
+                double dx = px - x;
+                double dy = py - y;
                 double dist = Math.sqrt(dx * dx + dy * dy);
                 
-                if (dist < pr - er) {
-                    player.loseLife();
+                // Collected powerup
+                if (dist < pr -r) {
+                    int type = p.getType();
+                    
+                    if (type == 1) {
+                        player.gainLife();
+                        texts.add(new Text(player.getX(), player.getY(), 2000, "Extra Life"));
+                    }
+                    if (type == 2) {
+                        player.increasePower(1);
+                        texts.add(new Text(player.getX(), player.getY(), 2000, "Power"));
+                    }
+                    if (type == 3) {
+                        player.increasePower(2);
+                        texts.add(new Text(player.getX(), player.getY(), 2000, "Double Power"));
+                    }
+                    if (type == 4) {
+                        slowDownTimer = System.nanoTime();
+                        for (int j = 0; j < enemies.size(); j++) {
+                            enemies.get(j).setSlow(true);
+                        }
+                        texts.add(new Text(player.getX(), player.getY(), 2000, "Extra Life"));
+                    }
+                    
+                    powerups.remove(i);
+                    i--;
+                }
+            }
+
+            // Slowdown update
+            if (slowDownTimer != 0) {
+                slowDownTimerDiff = (System.nanoTime() - slowDownTimer) / 1000000;
+                if (slowDownTimerDiff > slowDownTimerLength) {
+                    slowDownTimer = 0;
+                    for (int i = 0; i < enemies.size(); i++) {
+                        enemies.get(i).setSlow(false);
+                    }
                 }
             }
         }
@@ -290,10 +392,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
         g.fillRect(0,  0,  WIDTH,  HEIGHT);
         
         // Debug
-        g.setFont(font);
-        g.setColor(Color.WHITE);
-        g.drawString("FPS: " + averageFPS,  10, 20);
-        g.drawString("# of bullets: " + bullets.size(), 10, 40);
+        //g.setFont(font);
+        //g.setColor(Color.WHITE);
+        //g.drawString("FPS: " + averageFPS,  10, 20);
+        //g.drawString("# of bullets: " + bullets.size(), 10, 40);
 
         if (menu) {
             g.setFont(fontLarge);
@@ -303,7 +405,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
             g.drawString(s, WIDTH / 2 - length / 2, HEIGHT / 2 - 20);
 
             g.setFont(font);
-            g.setColor(Color.BLUE);
+            g.setColor(Color.YELLOW);
             s = "Press SPACE to play";
             length = (int)g.getFontMetrics().getStringBounds(s, g).getWidth();
             g.drawString(s, WIDTH / 2 - length / 2, HEIGHT / 2 + 20);
@@ -311,6 +413,12 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
             // Draw the stars
             for (int i = 0; i < stars.size(); i++) {
                 stars.get(i).draw(g);
+            }
+            
+            // Draw slowdown screen
+            if (slowDownTimer != 0) {
+                g.setColor(new Color(255, 255, 255, 64));
+                g.fillRect(0, 0, WIDTH, HEIGHT);
             }
 
             // Draw the player
@@ -326,9 +434,19 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
                 enemies.get(i).draw(g);
             }
             
+            // Draw powerups
+            for (int i = 0; i < powerups.size(); i++) {
+                powerups.get(i).draw(g);
+            }
+            
             // Draw explosions
             for (int i = 0; i < explosions.size(); i++) {
                 explosions.get(i).draw(g);
+            }
+            
+            // Draw texts
+            for (int i = 0; i < texts.size(); i++) {
+                texts.get(i).draw(g);
             }
             
             // Draw wave number

@@ -21,6 +21,7 @@ public class Bullet extends Entity {
         
         rad = Math.toRadians(angle);
         speed = 10;
+        dx = Math.cos(rad) * speed;
         dy = Math.sin(rad) * speed;
         
         colour1 = Color.YELLOW;
@@ -31,8 +32,10 @@ public class Bullet extends Entity {
      */
     public boolean update() {
         y += dy;
+        x += dx;
 
-        if (y < -r || y > GamePanel.HEIGHT + r) {
+        if (x < -r || x > GamePanel.WIDTH + r
+            || y < -r || y > GamePanel.HEIGHT + r) {
             return true;
         }
         
