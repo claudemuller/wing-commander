@@ -53,6 +53,10 @@ public class Player extends Entity {
         score = 0;
     }
 
+    public int getLives() {
+        return lives;
+    }
+
     /**
      * Get score
      * 
@@ -250,14 +254,29 @@ public class Player extends Entity {
                 }
             }
         }
+        
+        // If recovery time up, reset recovery timer
+        if (recovering) {
+            long elapsed = (System.nanoTime() - recoveryTimer) / 1000000;
+            if (elapsed > 2000) {
+                recovering = false;
+                recoveryTimer = 0;
+            }
+        }
     }
     
     /**
      * Draw all player related stuff
      */
     public void draw(Graphics2D g) {
-        g.setColor(colour1);
-        g.fillPolygon(new int[]{(int)x, (int)x + r, (int)x - r},
-                new int[]{(int)y - r * 2, (int)y + r, (int)y + r}, 3);
+        if (recovering) {
+            g.setColor(colour2);
+            g.fillPolygon(new int[]{(int)x, (int)x + r, (int)x - r},
+                    new int[]{(int)y - r * 2, (int)y + r, (int)y + r}, 3);
+        } else {
+            g.setColor(colour1);
+            g.fillPolygon(new int[]{(int)x, (int)x + r, (int)x - r},
+                    new int[]{(int)y - r * 2, (int)y + r, (int)y + r}, 3);
+        }
     }
 }

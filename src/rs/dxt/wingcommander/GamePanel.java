@@ -45,7 +45,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
     private long slowDownTimerDiff;
     private int slowDownTimerLength = 6000;
     
-    public Font font, fontLarge, fontSmall;
+    public Font font, fontLarge, fontSmall, fontMedium;
 
     boolean played;
     
@@ -88,9 +88,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
         try {
             URL resource = getClass().getResource("fonts/slkscr.ttf");
             Font ttfFont = Font.createFont(Font.TRUETYPE_FONT, resource.openStream());
+            fontSmall = ttfFont.deriveFont(12f);
+            fontMedium = ttfFont.deriveFont(14f);
             font = ttfFont.deriveFont(18f);
             fontLarge = ttfFont.deriveFont(40f);
-            fontSmall = ttfFont.deriveFont(12f);
         } catch(Exception e) {
             System.out.println(e.getMessage());
             font = new Font("Century Gothic", Font.PLAIN, 18);
@@ -284,11 +285,11 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
                    double rand = Math.random();
                    if (rand < 0.01) {
                        powerups.add(new PowerUp(1, e.getX(), e.getY()));
-                   } else if (rand < 0.01) {
+                   } else if (rand < 0.10) {
                        powerups.add(new PowerUp(3, e.getX(), e.getY()));
-                   } else if (rand < 0.01) {
+                   } else if (rand < 0.30) {
                        powerups.add(new PowerUp(2, e.getX(), e.getY()));
-                   } else if (rand < 0.01) {
+                   } else if (rand < 0.20) {
                        powerups.add(new PowerUp(4, e.getX(), e.getY()));
                    }
                    
@@ -324,7 +325,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
                     double dy = py - ey;
                     double dist = Math.sqrt(dx * dx + dy * dy);
                     
-                    if (dist < pr - er) {
+                    System.out.println(dist + " " + (pr - er));
+                    if (dist < pr + er) {
                         player.loseLife();
                     }
                 }
@@ -342,7 +344,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
                 double dist = Math.sqrt(dx * dx + dy * dy);
                 
                 // Collected powerup
-                if (dist < pr -r) {
+                if (dist < pr + r) {
                     int type = p.getType();
                     
                     if (type == 1) {
@@ -362,7 +364,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
                         for (int j = 0; j < enemies.size(); j++) {
                             enemies.get(j).setSlow(true);
                         }
-                        texts.add(new Text(player.getX(), player.getY(), 2000, "Extra Life"));
+                        texts.add(new Text(player.getX(), player.getY(), 2000, "Time Slowdown"));
                     }
                     
                     powerups.remove(i);
@@ -460,6 +462,42 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
                 }
                 g.setColor(new Color(255, 255, 255, alpha));
                 g.drawString(s, WIDTH / 2 - length / 2, HEIGHT / 2);
+            }
+            
+            // Draw player lives
+            for (int i = 0; i < player.getLives(); i++) {
+                g.setColor(Color.WHITE);
+                g.fillPolygon(new int[]{
+                        25 + 20 * i,
+                        25 + 20 * i + player.getR(),
+                        25 + 20 * i - player.getR()},
+                        new int[]{
+                                20 - player.getR() * 2,
+                                20 + player.getR(),
+                                20 + player.getR()},
+                        3);
+            }
+            
+            // Draw player power
+            g.setColor(Color.YELLOW);
+            g.fillRect(20, 40, player.getPower() * 8, 8);
+            g.setColor(Color.YELLOW.darker());
+            g.setStroke(new BasicStroke(2));
+            for (int i = 0; i < player.getRequiredPower(); i++) {
+                g.drawRect(20 + 8 * i, 40, 8, 8);
+            }
+            g.setStroke(new BasicStroke(1));
+            
+            // Draw player score
+            g.setColor(Color.WHITE);
+            g.setFont(fontMedium);
+            g.drawString("Score: " + player.getScore(), WIDTH - 110, 30);
+            
+            // Slowdown meter
+            if (slowDownTimer != 0) {
+                g.setColor(Color.WHITE);
+                g.fillRect(20, 60, (int)(100 - 100.0 * slowDownTimerDiff /
+                        slowDownTimerLength), 8);
             }
         }
     }
