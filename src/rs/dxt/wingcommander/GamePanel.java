@@ -154,7 +154,25 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
             }
         }
         
+        System.out.println("test");
+
         // Game over
+        g.setColor(new Color(0, 0, 0));
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+
+        g.setFont(fontLarge);
+        g.setColor(Color.WHITE);
+        String s = "G a m e O v e r";
+        int length = (int)g.getFontMetrics().getStringBounds(s, g).getWidth();
+        g.drawString(s, WIDTH / 2 - length / 2, HEIGHT / 2 - 20);
+
+        g.setFont(font);
+        g.setColor(Color.YELLOW);
+        s = "Final score: " + player.getScore();
+        length = (int)g.getFontMetrics().getStringBounds(s, g).getWidth();
+        g.drawString(s, WIDTH / 2 - length / 2, HEIGHT / 2 + 20);
+        
+        gameDraw();
     }
     
     /**
@@ -266,7 +284,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
                     double dist = Math.sqrt(dx * dx + dy * dy);
                     
                     // Collision if dist less than both radii added together
-                    if (dist < br + er) {
+                    if (dist < br + er + 3) {
                         e.hit();
                         bullets.remove(b);
                         if (i > 0) {
@@ -285,12 +303,12 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
                    double rand = Math.random();
                    if (rand < 0.01) {
                        powerups.add(new PowerUp(1, e.getX(), e.getY()));
-                   } else if (rand < 0.10) {
-                       powerups.add(new PowerUp(3, e.getX(), e.getY()));
-                   } else if (rand < 0.30) {
-                       powerups.add(new PowerUp(2, e.getX(), e.getY()));
-                   } else if (rand < 0.20) {
+                   } else if (rand < 0.15) {
                        powerups.add(new PowerUp(4, e.getX(), e.getY()));
+                   } else if (rand < 0.2) {
+                       powerups.add(new PowerUp(3, e.getX(), e.getY()));
+                   } else if (rand < 0.25) {
+                       powerups.add(new PowerUp(2, e.getX(), e.getY()));
                    }
                    
                    player.addScore(e.getType() + e.getRank());
@@ -325,8 +343,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
                     double dy = py - ey;
                     double dist = Math.sqrt(dx * dx + dy * dy);
                     
-                    System.out.println(dist + " " + (pr - er));
-                    if (dist < pr + er) {
+                    if (dist < pr + er + 3) {
                         player.loseLife();
                     }
                 }
