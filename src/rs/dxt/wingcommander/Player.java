@@ -267,6 +267,8 @@ public class Player extends Entity {
     
     /**
      * Draw all player related stuff
+     * 
+     * @param g The graphics context
      */
     public void draw(Graphics2D g) {
         if (recovering) {

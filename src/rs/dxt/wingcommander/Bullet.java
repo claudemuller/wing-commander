@@ -28,7 +28,7 @@ public class Bullet extends Entity {
     }
     
     /**
-     * Update all the player logic
+     * Update all the bullet logic
      */
     public boolean update() {
         y += dy;
@@ -43,7 +43,9 @@ public class Bullet extends Entity {
     }
 
     /**
-     * Draw all player related stuff
+     * Draw all bullet related stuff
+     * 
+     * @param g The graphics context
      */
     public void draw(Graphics2D g) {
         g.setColor(colour1);

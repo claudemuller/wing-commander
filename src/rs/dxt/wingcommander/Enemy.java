@@ -18,6 +18,12 @@ public class Enemy extends Entity {
     
     private boolean slow;
     
+    /**
+     * Class constructor
+     * 
+     * @param type The type of enemy
+     * @param rank The rank of enemy
+     */
     public Enemy(int type, int rank) {
         this.type = type;
         this.rank = rank;
@@ -113,22 +119,45 @@ public class Enemy extends Entity {
         hitTimer = 0;
     }
     
+    /**
+     * Is dead
+     * 
+     * @return dead
+     */
     public boolean isDead() {
         return dead;
     }
     
+    /**
+     * Get type
+     * 
+     * @return type
+     */
     public int getType() {
         return type;
     }
     
+    /**
+     * Get rank
+     * 
+     * @return rank
+     */
     public int getRank() {
         return rank;
     }
     
+    /**
+     * Set slow
+     * 
+     * @param b
+     */
     public void setSlow(boolean b) {
         slow = b;
     }
     
+    /**
+     * Record hit
+     */
     public void hit() {
         health--;
         if (health <= 0) {
@@ -138,6 +167,9 @@ public class Enemy extends Entity {
         hitTimer = System.nanoTime();
     }
     
+    /**
+     * Process exploding enemy
+     */
     public void explode() {
         if (rank > 1) {
             int amount = 0;
@@ -169,6 +201,9 @@ public class Enemy extends Entity {
         }
     }
     
+    /**
+     * Update all the enemy logic
+     */
     public void update() {
         if (slow) {
             x += dx * 0.3;
@@ -207,6 +242,11 @@ public class Enemy extends Entity {
         }
     }
     
+    /**
+     * Draw all the enemy related stuff
+     * 
+     * @param g The graphics context
+     */
     public void draw(Graphics2D g) {
         if (hit) {
             g.setColor(Color.WHITE);

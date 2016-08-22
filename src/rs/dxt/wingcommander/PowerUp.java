@@ -5,7 +5,14 @@ import java.awt.*;
 public class PowerUp extends Entity {
     
     private int type;
-    
+
+    /**
+     * Class constructor
+     * 
+     * @param type The type of powerup
+     * @param x    The x at which to draw the powerup
+     * @param y    The y at which to draw the powerup
+     */   
     public PowerUp(int type, double x, double y) {
         this.x = x;
         this.y = y;
@@ -29,10 +36,20 @@ public class PowerUp extends Entity {
         }
     }
     
+    /**
+     * Get type
+     * 
+     * @return type
+     */
     public int getType() {
         return type;
     }
     
+    /**
+     * Update all the powerup logic
+     * 
+     * @return boolean
+     */
     public boolean update() {
         y += 2;
         
@@ -43,6 +60,11 @@ public class PowerUp extends Entity {
         return false;
     }
     
+    /**
+     * Draw all powerup related stuff
+     * 
+     * @param g The graphics context
+     */
     public void draw(Graphics2D g) {
         g.setColor(colour1);
         g.fillRect((int)x - r, (int)y - r, 2 * r, 2 * r);

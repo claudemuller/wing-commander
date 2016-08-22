@@ -6,11 +6,6 @@ import java.awt.event.*;
 import java.awt.image.*;
 import java.net.URL;
 
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.DataLine;
 import javax.swing.JPanel;
 
 public class GamePanel extends JPanel implements Runnable, KeyListener{
@@ -45,7 +40,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
     private long slowDownTimerDiff;
     private int slowDownTimerLength = 6000;
     
-    public Font font, fontLarge, fontSmall, fontMedium;
+    public static Font font, fontLarge, fontSmall, fontMedium;
 
     boolean played;
     
@@ -59,6 +54,9 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
         requestFocus();
     }
     
+    /**
+     * The addNotify method for the Runnable implementation
+     */
     public void addNotify() {
         super.addNotify();
         
@@ -85,6 +83,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         
+        // Set up the fonts
         try {
             URL resource = getClass().getResource("fonts/slkscr.ttf");
             Font ttfFont = Font.createFont(Font.TRUETYPE_FONT, resource.openStream());
@@ -154,8 +153,6 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
             }
         }
         
-        System.out.println("test");
-
         // Game over
         g.setColor(new Color(0, 0, 0));
         g.fillRect(0, 0, WIDTH, HEIGHT);
@@ -180,23 +177,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
      */
     public void gameUpdate() {
         if (menu) {
-            played = true;
-            if (!played) {
-                URL resource = getClass().getResource("sfx/powerup.wav");
-                try {
-                    AudioInputStream stream = AudioSystem.getAudioInputStream(resource);
-                    //AudioFormat format = stream.getFormat();
-                    //DataLine.Info info = new DataLine.Info(Clip.class, format);
-                    //Clip clip = (Clip)AudioSystem.getLine(info);
-                    Clip clip = AudioSystem.getClip();
-                    clip.open(stream);
-                    clip.start();
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-                played = true;
-            }
+            // Sound stuff
         } else {
             // New Wave
             if (waveStartTimer == 0 && enemies.size() == 0) {
@@ -528,6 +509,9 @@ public class GamePanel extends JPanel implements Runnable, KeyListener{
         g2.dispose();
     }
     
+    /**
+     * Create all the enemies for specific wave
+     */
     private void createNewEnemies() {
         enemies.clear();
         
